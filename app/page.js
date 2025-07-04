@@ -82,7 +82,7 @@ export default function Home() {
   return (
     <>
       <div
-        className="d-flex flex-column p-3"
+        className="flex flex-col p-3"
         style={{ height: "100vh" }}
         onKeyDown={handleKeydown}
       >

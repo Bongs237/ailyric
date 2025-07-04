@@ -8,7 +8,7 @@ export default function Checkbox(props) {
         checked={props.checked}
         onChange={props.changeFunc}
       />
-      <label className="form-check-label" htmlFor="autocomplete-check">Autocomplete</label>
+      <label className="form-check-label pl-1" htmlFor="autocomplete-check">Autocomplete</label>
     </div>
   );
 }
