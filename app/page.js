@@ -37,11 +37,11 @@ export default function Home() {
     }
   };
 
-  const suggestionShown = (data) => {
+  const suggestionShown = () => {
     setOnSuggestion(true);
   };
 
-  const suggestionConsidered = (data) => {
+  const suggestionConsidered = () => {
     setOnSuggestion(false);
   };
 
@@ -80,46 +80,31 @@ export default function Home() {
   };
 
   return (
-    <>
-      <div
-        className="flex flex-col p-3"
-        style={{ height: "100vh" }}
-        onKeyDown={handleKeydown}
-      >
+    <div className="min-h-screen w-full bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-500 flex items-center justify-center relative overflow-hidden">
+      <div className="w-full h-screen mx-auto p-5 flex flex-col">
+        <div className="flex items-center gap-3 mb-8">
+          <span className="text-4xl">🎤</span>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-lg">
+            AI Lyric Autocompleter
+          </h1>
+        </div>
         <Checkbox checked={checked} changeFunc={handleChange} />
-        <AutocompleteTextbox
-          value={"I'm cool"}
-          getSuggestion={getSuggestion}
-          onContentChange={content => setContent(content)}
-          disableAutocomplete={!checked}
-          debounceTime={1000}
-          className="
-            p-4
-            text-lg
-            bg-white
-            rounded-2xl
-            shadow-xl
-            border-2
-            border-transparent
-            focus:border-blue-500
-            focus:ring-2
-            focus:ring-blue-200
-            transition
-            duration-200
-            outline-none
-            placeholder-gray-400
-            dark:bg-gray-900
-            dark:text-white
-            dark:placeholder-gray-500
-          "
-          style={{ height: "100%", overflow: "auto" }}
-          onSuggestionShown={suggestionShown}
-          onSuggestionAccepted={suggestionConsidered}
-          onSuggestionRejected={suggestionConsidered}
-          suggestionClassName={"ai-suggestion"}
-          onPaste={handlePaste}
-        />
+        <div className="flex-grow flex flex-col min-h-0" onKeyDown={handleKeydown}>
+          <AutocompleteTextbox
+            value="I'm cool"
+            getSuggestion={getSuggestion}
+            onContentChange={content => setContent(content)}
+            disableAutocomplete={!checked}
+            debounceTime={1000}
+            className="w-full h-full text-xl font-medium bg-white/80 rounded-xl px-6 py-4 shadow-lg border-2 border-transparent focus:border-pink-400 focus:ring-2 focus:ring-pink-200 transition duration-200 outline-none placeholder-gray-400 dark:bg-gray-900/80 dark:text-white dark:placeholder-gray-500 backdrop-blur"
+            onSuggestionShown={suggestionShown}
+            onSuggestionAccepted={suggestionConsidered}
+            onSuggestionRejected={suggestionConsidered}
+            suggestionClassName="ai-suggestion"
+            onPaste={handlePaste}
+          />
+        </div>
       </div>
-    </>
+    </div>
   );
 }
