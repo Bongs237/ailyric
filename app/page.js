@@ -1,83 +1,64 @@
 "use client"
 
 import Checkbox from '../components/Checkbox.js';
-import AutocompleteTextbox from 'react-ghost-text/dist/AutocompleteTextbox.js';
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
+import CodeMirror from '@uiw/react-codemirror';
+import { EditorView } from '@uiw/react-codemirror';
+import { inlineSuggestion } from 'codemirror-extension-inline-suggestion';
+import { Geist } from 'next/font/google';
+
+const geist = Geist({subsets: ['latin']});
 
 export default function Home() {
   const [checked, setChecked] = useState(true);
-
-  function handleChange() {
+  function onCheckboxChange() {
     setChecked(!checked);
   }
 
-  const [onSuggestion, setOnSuggestion] = useState(false); // if you're on a suggestion or not
-
-  const [suggestions, setSuggestions] = useState([]);
-  const [suggestionIndex, setSuggestionIndex] = useState(0);
-
   const [content, setContent] = useState("");
+  const timeoutRef = useRef(null);
 
-  const getSuggestion = async (precedingText) => {
-    if (precedingText.trim() === "") {
-      return;
+  const fetchSuggestion = async (state) => {
+    console.log(state)
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
 
-    try {
-      const response = await fetch(`/api/autocomplete?text=${encodeURIComponent(precedingText)}`);
-      const json = await response.json();
-      const numChoices = json.completions.length;
-      if (numChoices > 0) {
-        setSuggestions(json.completions);
-        setSuggestionIndex(0);
-        return json.completions[0];
-      }
-    } catch (error) {
-      console.error(error);
+    if (state.doc.length === 0) {
+      return "";
     }
-  };
 
-  const suggestionShown = () => {
-    setOnSuggestion(true);
-  };
+    const fullText = state.doc.text.join("\n");
 
-  const suggestionConsidered = () => {
-    setOnSuggestion(false);
-  };
-
-  const handleKeydown = (e) => {
-    if (onSuggestion) {
-      const suggestionEle = document.getElementsByClassName("ai-suggestion")[0]; // smh i dont have access to the actual element so i have to do this hack
-
-      if (e.code == "ArrowDown") {
-        e.preventDefault();
-
-        const newSuggestionIndex = suggestionIndex + 1;
-        const newSuggestion = suggestions[newSuggestionIndex % suggestions.length];
-
-        if (newSuggestion !== undefined) {
-          suggestionEle.innerHTML = newSuggestion;
-          setSuggestionIndex(newSuggestionIndex);
+    return new Promise((resolve) => {
+      timeoutRef.current = setTimeout(async () => {
+        try {
+          const res = await fetch(`/api/autocomplete?text=${encodeURIComponent(fullText)}`);
+          const json = await res.json();
+          const numChoices = json.completions.length;
+          if (numChoices > 0) {
+            resolve(json.completions[0]);
+          } else {
+            resolve("");
+          }
+        } catch (error) {
+          console.error('Error fetching suggestion:', error);
+          resolve("");
         }
-      } else if (e.code == "ArrowUp") {
-        e.preventDefault();
+      }, 1000);
+    });
+  };
 
-        const newSuggestionIndex = suggestionIndex - 1;
-        const newSuggestion = suggestions[newSuggestionIndex % suggestions.length];
+  const onTextboxChange = useCallback((val) => {
+    setContent(val);
+  }, []);
 
-        if (newSuggestion !== undefined) {
-          suggestionEle.innerHTML = newSuggestion;
-          setSuggestionIndex(newSuggestionIndex);
-        }
-      }
+  const FontFamilyTheme = EditorView.theme({
+    ".cm-content": {
+      fontFamily: `${geist.style.fontFamily} !important`
     }
-  };
-
-  const handlePaste = (e) => {
-    e.preventDefault();
-    let text = (e.clipboardData || window.clipboardData).getData('text/plain');
-    document.execCommand('insertText', false, text);
-  };
+  });
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-500 flex items-center justify-center relative overflow-hidden">
@@ -88,20 +69,21 @@ export default function Home() {
             AI Lyric Autocompleter
           </h1>
         </div>
-        <Checkbox checked={checked} changeFunc={handleChange} />
-        <div className="flex-grow flex flex-col min-h-0" onKeyDown={handleKeydown}>
-          <AutocompleteTextbox
-            value="I'm cool"
-            getSuggestion={getSuggestion}
-            onContentChange={content => setContent(content)}
-            disableAutocomplete={!checked}
-            debounceTime={1000}
-            className="w-full h-full text-xl font-medium bg-white/80 rounded-xl px-6 py-4 shadow-lg border-2 border-transparent focus:border-pink-400 focus:ring-2 focus:ring-pink-200 transition duration-200 outline-none placeholder-gray-400 dark:bg-gray-900/80 dark:text-white dark:placeholder-gray-500 backdrop-blur"
-            onSuggestionShown={suggestionShown}
-            onSuggestionAccepted={suggestionConsidered}
-            onSuggestionRejected={suggestionConsidered}
-            suggestionClassName="ai-suggestion"
-            onPaste={handlePaste}
+        <Checkbox checked={checked} changeFunc={onCheckboxChange} />
+        <div className="flex-grow flex flex-col min-h-0 text-black">
+          <CodeMirror 
+            value={content}
+            onChange={onTextboxChange}
+            basicSetup={{
+              lineNumbers: false,
+            }}
+            extensions={[
+              FontFamilyTheme,
+              inlineSuggestion({
+                fetchFn: fetchSuggestion,
+                delay: 0,
+              })
+            ]}
           />
         </div>
       </div>

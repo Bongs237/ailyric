@@ -17,8 +17,8 @@ If the user's input does not end with a whitespace character, prepend a space to
 If the user's input ends with a whitespace character, output your completion without an extra leading space.
 
 Example:
-User: "Roses are red, violets are blue / I like coding / and find it"
-Output: [" fun too", " cool too"]
+User: "Roses are red, violets are blue / I like coding / and find it fun"
+Output: [" too", " dude"]
 (Notice the trailing space)
 
 Example:
@@ -26,9 +26,14 @@ User: "I'm so tired"
 Output: [" but I can't sleep"]
 
 Example:
+User: "Everything is "
+Output: ["awesome", "epic", "cool"]
+(Notice the user provided a trailing space, so no need to write one in)
+
+Example:
 User: "I feel like a for loop the way I've been going on and on
-There's something"
-Output: [" kinda strange"]
+There's something "
+Output: ["kinda strange"]
 (Note: Since the final line still has room for additional words after 1-2 words, continue the thought naturally instead of forcing a rhyme.)
 
 Example:

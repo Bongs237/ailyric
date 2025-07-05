@@ -23,3 +23,8 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+[class^="cm-theme-"], [class*=" cm-theme-"], .cm-editor {
+  height: 100% !important;
+  min-height: 0 !important;
+}
