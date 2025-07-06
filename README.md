@@ -1,5 +1,6 @@
 # What is this???
 Basically think of it as [Cursor AI](https://cursor.com/en) but for writing song lyrics (kinda). It's a text editor, but you get suggestions for lyrics and rhymes as you type.
+
 ![image](https://github.com/user-attachments/assets/4e754119-b3a5-434c-9459-bb5785c72f6f)
 
 
