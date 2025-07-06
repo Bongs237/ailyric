@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const client = new OpenAI();
+const client = new OpenAI({
+    baseURL: process.env.USE_LLM7 ? "https://api.llm7.io/v1" : undefined,
+});
 
 const AI_PROMPT = `You are a creative lyric autocompletion assistant. Your task is to complete only the final, incomplete line of a song lyric provided by the user. Follow these rules:
 

@@ -6,8 +6,10 @@ import CodeMirror from '@uiw/react-codemirror';
 import { EditorView } from '@uiw/react-codemirror';
 import { inlineSuggestion } from 'codemirror-extension-inline-suggestion';
 import { Geist } from 'next/font/google';
+import { abcdef } from '@uiw/codemirror-theme-abcdef';
 
 const geist = Geist({subsets: ['latin']});
+const DEBOUNCE_TIME = 2000;
 
 export default function Home() {
   const [checked, setChecked] = useState(true);
@@ -19,8 +21,6 @@ export default function Home() {
   const timeoutRef = useRef(null);
 
   const fetchSuggestion = async (state) => {
-    console.log(state)
-
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -31,6 +31,8 @@ export default function Home() {
 
     const fullText = state.doc.text.join("\n");
 
+    // The codemirror inline suggestion extension makes u return a promise which then resolves to the autocomplete suggestion
+    // And the "debounce time"/"delay" thing that they put in still tracks every single keystroke so I had to manually add that in
     return new Promise((resolve) => {
       timeoutRef.current = setTimeout(async () => {
         try {
@@ -46,7 +48,7 @@ export default function Home() {
           console.error('Error fetching suggestion:', error);
           resolve("");
         }
-      }, 1000);
+      }, DEBOUNCE_TIME);
     });
   };
 
@@ -70,13 +72,14 @@ export default function Home() {
           </h1>
         </div>
         <Checkbox checked={checked} changeFunc={onCheckboxChange} />
-        <div className="flex-grow flex flex-col min-h-0 text-black">
+        <div className="flex-grow flex flex-col min-h-0">
           <CodeMirror 
             value={content}
             onChange={onTextboxChange}
             basicSetup={{
               lineNumbers: false,
             }}
+            theme={abcdef}
             extensions={[
               FontFamilyTheme,
               inlineSuggestion({
