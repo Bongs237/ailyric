@@ -78,6 +78,7 @@ export default function Home() {
             onChange={onTextboxChange}
             basicSetup={{
               lineNumbers: false,
+              foldGutter: false,
             }}
             theme={abcdef}
             extensions={[
