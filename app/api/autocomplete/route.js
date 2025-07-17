@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { ChatOpenAI } from "@langchain/openai";
+import { z } from "zod";
 
-const client = new OpenAI({
+const client = new ChatOpenAI({
+  model: "gpt-4o-mini",
+  temperature: 0.7,
+  configuration: {
     baseURL: process.env.USE_LLM7 ? "https://api.llm7.io/v1" : undefined,
+  },
 });
+
+const songLyricSchema = z.object({
+  completions: z.array(z.string()),
+});
+const structuredLlm = client.withStructuredOutput(songLyricSchema);
 
 const AI_PROMPT = `You are a creative lyric autocompletion assistant. Your task is to complete only the final, incomplete line of a song lyric provided by the user. Follow these rules:
 
@@ -66,47 +76,17 @@ Output: [""]
 `;
 
 export async function GET(request) {
-    const { searchParams } = new URL(request.url);
-    const text = searchParams.get("text");
-    if (text) {
-        const completion = await client.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
-                {
-                    role: "system",
-                    content: AI_PROMPT
-                },
-                {
-                    role: "user",
-                    content: '"' + text + '"'
-                }
-            ],
-            temperature: 0.7,
-            response_format: {
-                type: "json_schema",
-                json_schema: {
-                    name: "song_lyric_schema",
-                    schema: {
-                        type: "object",
-                        properties: {
-                            completions: {
-                                description: "The possible autocompletions of the lyric",
-                                type: "array",
-                                items: {
-                                    type: "string",
-                                    additionalProperties: false,
-                                }
-                            },
-                            additionalProperties: false
-                        }
-                    }
-                }
-            }
-        });
+  const { searchParams } = new URL(request.url);
+  const text = searchParams.get("text");
+  if (!text) {
+    return NextResponse.json({error: "Missing text"}, {status: 400});
+  }
 
-        const result = JSON.parse(completion.choices[0].message.content);
-        return NextResponse.json(result);
-    } else {
-        return NextResponse.json({error: "Missing text"}, {status: 400});
-    }
+  const messages = [
+    { role: "system", content: AI_PROMPT },
+    { role: "user", content: JSON.stringify(text) }, // stringify to add double quotes into the text
+  ];
+
+  const response = await structuredLlm.invoke(messages);
+  return NextResponse.json(response);
 }

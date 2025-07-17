@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@langchain/core": "^0.3.62",
+    "@langchain/openai": "^0.5.18",
     "@uiw/codemirror-theme-abcdef": "^4.24.0",
     "@uiw/react-codemirror": "^4.23.14",
     "codemirror": "^6.0.2",

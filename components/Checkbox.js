@@ -1,6 +1,6 @@
 export default function Checkbox(props) {
   return (
-    <div className="mb-3">
+    <div>
       <input 
         type="checkbox"
         role="switch"

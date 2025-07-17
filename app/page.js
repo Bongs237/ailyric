@@ -64,14 +64,17 @@ export default function Home() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-500 flex items-center justify-center relative overflow-hidden">
-      <div className="w-full h-screen mx-auto p-5 flex flex-col">
-        <div className="flex items-center gap-3 mb-8">
-          <span className="text-4xl">🎤</span>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-lg">
-            AI Lyric Autocompleter
-          </h1>
+      <div className="w-full h-screen mx-auto flex flex-col">
+        <div className="p-5">
+          <div className="flex items-center gap-3 mb-8">
+            <span className="text-4xl">🎤</span>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-lg">
+              AI Lyric Autocompleter
+            </h1>
+          </div>
+          <Checkbox checked={checked} changeFunc={onCheckboxChange} />
         </div>
-        <Checkbox checked={checked} changeFunc={onCheckboxChange} />
+
         <div className="flex-grow flex flex-col min-h-0">
           <CodeMirror 
             value={content}
@@ -88,6 +91,7 @@ export default function Home() {
                 delay: 0,
               })
             ]}
+            placeholder={"Write your banger here..."}
           />
         </div>
       </div>
