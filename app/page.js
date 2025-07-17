@@ -19,6 +19,7 @@ export default function Home() {
 
   const [content, setContent] = useState("");
   const timeoutRef = useRef(null);
+  const suggestionCache = useRef({});
 
   const fetchSuggestion = async (state) => {
     if (timeoutRef.current) {
@@ -31,6 +32,10 @@ export default function Home() {
 
     const fullText = state.doc.text.join("\n");
 
+    if (suggestionCache.current[fullText]) {
+      return suggestionCache.current[fullText];
+    }
+
     // The codemirror inline suggestion extension makes u return a promise which then resolves to the autocomplete suggestion
     // And the "debounce time"/"delay" thing that they put in still tracks every single keystroke so I had to manually add that in
     return new Promise((resolve) => {
@@ -40,8 +45,10 @@ export default function Home() {
           const json = await res.json();
           const numChoices = json.completions.length;
           if (numChoices > 0) {
+            suggestionCache.current[fullText] = json.completions[0];
             resolve(json.completions[0]);
           } else {
+            suggestionCache.current[fullText] = "";
             resolve("");
           }
         } catch (error) {
