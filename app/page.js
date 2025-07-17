@@ -9,7 +9,7 @@ import { Geist } from 'next/font/google';
 import { abcdef } from '@uiw/codemirror-theme-abcdef';
 
 const geist = Geist({subsets: ['latin']});
-const DEBOUNCE_TIME = 2000;
+const DEBOUNCE_TIME = 1000;
 
 export default function Home() {
   const [checked, setChecked] = useState(true);
@@ -30,7 +30,13 @@ export default function Home() {
       return "";
     }
 
-    const fullText = state.doc.text.join("\n");
+    const allLines = state.doc.text;
+    const fullText = allLines.join("\n");
+
+    // if last line empty, dont give suggestions
+    if (allLines[allLines.length - 1].trim() === "") {
+      return "";
+    }
 
     if (suggestionCache.current[fullText]) {
       return suggestionCache.current[fullText];
@@ -45,8 +51,16 @@ export default function Home() {
           const json = await res.json();
           const numChoices = json.completions.length;
           if (numChoices > 0) {
-            suggestionCache.current[fullText] = json.completions[0];
-            resolve(json.completions[0]);
+            // Use first one for now lol
+            let choice = json.completions[0];
+
+            // if last character of your last line is a space, and the suggestion starts with a space, remove it
+            if (allLines[allLines.length - 1].endsWith(" ") && choice.startsWith(" ")) {
+              choice = choice.slice(1);
+            }
+
+            suggestionCache.current[fullText] = choice;
+            resolve(choice);
           } else {
             suggestionCache.current[fullText] = "";
             resolve("");

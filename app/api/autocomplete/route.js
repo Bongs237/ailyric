@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ChatOpenAI } from "@langchain/openai";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
 
 const client = new ChatOpenAI({
@@ -83,8 +84,8 @@ export async function GET(request) {
   }
 
   const messages = [
-    { role: "system", content: AI_PROMPT },
-    { role: "user", content: JSON.stringify(text) }, // stringify to add double quotes into the text
+    new SystemMessage(AI_PROMPT),
+    new HumanMessage(JSON.stringify(text)), // stringify to add double quotes into the actual string
   ];
 
   const response = await structuredLlm.invoke(messages);
