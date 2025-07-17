@@ -9,7 +9,7 @@ import { Geist } from 'next/font/google';
 import { abcdef } from '@uiw/codemirror-theme-abcdef';
 
 const geist = Geist({subsets: ['latin']});
-const DEBOUNCE_TIME = 500;
+const DEBOUNCE_TIME = 1000;
 
 export default function Home() {
   const [checked, setChecked] = useState(true);
@@ -32,15 +32,34 @@ export default function Home() {
 
     const allLines = state.doc.text;
     const fullText = allLines.join("\n");
-
     const cursorPos = state.selection.main.head;
 
-    // Insert {CURSOR} at the cursor position in the text
-    const textWithCursor = fullText.slice(0, cursorPos) + '{CURSOR}' + fullText.slice(cursorPos);
     // if last line empty, dont give suggestions
     if (allLines[allLines.length - 1].trim() === "") {
       return "";
     }
+
+    // Find the line and column of the cursor
+    let charCount = 0;
+    let cursorLine = 0;
+    let cursorCol = 0;
+    for (let i = 0; i < allLines.length; i++) {
+      if (charCount + allLines[i].length >= cursorPos) {
+        cursorLine = i;
+        cursorCol = cursorPos - charCount;
+        break;
+      }
+      charCount += allLines[i].length + 1; // +1 for the newline
+    }
+
+    // Only use lines up to and including the cursor's line
+    const linesToCursor = allLines.slice(0, cursorLine + 1);
+    // Insert {CURSOR} at the correct position in the last line
+    linesToCursor[linesToCursor.length - 1] =
+      linesToCursor[linesToCursor.length - 1].slice(0, cursorCol) +
+      '{CURSOR}' +
+      linesToCursor[linesToCursor.length - 1].slice(cursorCol);
+    const textWithCursor = linesToCursor.join("\n");
 
     if (suggestionCache.current[fullText]) {
       return suggestionCache.current[fullText];
@@ -63,8 +82,15 @@ export default function Home() {
             }
             
             // if it turns out the ai is dumb and tries to add two spaces
-            // as in, the last character of your last line is a space, and the suggestion starts with a space, remove it
-            if (allLines[allLines.length - 1].endsWith(" ") && choice.startsWith(" ")) {
+            // as in, the character before the cursor is a space, and the suggestion starts with a space, remove it
+            let charBeforeCursor = '';
+            if (cursorCol > 0) {
+              charBeforeCursor = allLines[cursorLine][cursorCol - 1];
+            } else if (cursorLine > 0) {
+              // If at the start of a line, check the last char of the previous line
+              charBeforeCursor = allLines[cursorLine - 1].slice(-1);
+            }
+            if (charBeforeCursor === " " && choice.startsWith(" ")) {
               choice = choice.slice(1);
             }
 

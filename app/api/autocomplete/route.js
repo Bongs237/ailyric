@@ -4,7 +4,7 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
 
 const client = new ChatOpenAI({
-  model: "gpt-4o-mini",
+  model: "gpt-4o",
   temperature: 0.7,
   configuration: {
     baseURL: process.env.USE_LLM7 ? "https://api.llm7.io/v1" : undefined,
