@@ -9,7 +9,7 @@ import { Geist } from 'next/font/google';
 import { abcdef } from '@uiw/codemirror-theme-abcdef';
 
 const geist = Geist({subsets: ['latin']});
-const DEBOUNCE_TIME = 1000;
+const DEBOUNCE_TIME = 500;
 
 export default function Home() {
   const [checked, setChecked] = useState(true);
@@ -33,6 +33,10 @@ export default function Home() {
     const allLines = state.doc.text;
     const fullText = allLines.join("\n");
 
+    const cursorPos = state.selection.main.head;
+
+    // Insert {CURSOR} at the cursor position in the text
+    const textWithCursor = fullText.slice(0, cursorPos) + '{CURSOR}' + fullText.slice(cursorPos);
     // if last line empty, dont give suggestions
     if (allLines[allLines.length - 1].trim() === "") {
       return "";
@@ -42,19 +46,24 @@ export default function Home() {
       return suggestionCache.current[fullText];
     }
 
-    // The codemirror inline suggestion extension makes u return a promise which then resolves to the autocomplete suggestion
-    // And the "debounce time"/"delay" thing that they put in still tracks every single keystroke so I had to manually add that in
+    // Only set to true when actually starting a fetch
     return new Promise((resolve) => {
       timeoutRef.current = setTimeout(async () => {
         try {
-          const res = await fetch(`/api/autocomplete?text=${encodeURIComponent(fullText)}`);
+          const res = await fetch(`/api/autocomplete?text=${encodeURIComponent(textWithCursor)}`);
           const json = await res.json();
           const numChoices = json.completions.length;
           if (numChoices > 0) {
             // Use first one for now lol
             let choice = json.completions[0];
+            choice = choice.trim();
 
-            // if last character of your last line is a space, and the suggestion starts with a space, remove it
+            if (json.prependSpace) {
+              choice = " " + choice;
+            }
+            
+            // if it turns out the ai is dumb and tries to add two spaces
+            // as in, the last character of your last line is a space, and the suggestion starts with a space, remove it
             if (allLines[allLines.length - 1].endsWith(" ") && choice.startsWith(" ")) {
               choice = choice.slice(1);
             }
